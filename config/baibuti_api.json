@@ -1,0 +1,26 @@
+{
+  "checkin_apis": [
+    {
+      "method": "POST",
+      "path": "/api/redflix/user_sign_in",
+      "enabled": true,
+      "params": {
+        "user_id": "",
+        "timestamp": 0
+      }
+    }
+  ],
+  "points_api": {
+    "method": "GET",
+    "path": "/api/redflix/user_assets",
+    "params": {}
+  },
+  "grab_api": {
+    "method": "POST",
+    "path": "/api/redflix/grab_coupon",
+    "params": {
+      "coupon_type": "no_threshold_5",
+      "points": 100
+    }
+  }
+}

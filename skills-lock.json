@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "dead-code-removal": {
+      "source": "89jobrien/steve",
+      "sourceType": "github",
+      "computedHash": "e604965bdec43d0f6c55bc952e49a488558b4b6247c4d9bf06b68351ddf386ea"
+    },
+    "deslop": {
+      "source": "brianlovin/claude-config",
+      "sourceType": "github",
+      "computedHash": "72f1f9e44634a062c3725c3d82b4f53ffbe0dfb82aa38ef3a0ef30a3111a3d7a"
+    }
+  }
+}

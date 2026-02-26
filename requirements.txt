@@ -1,0 +1,55 @@
+# === 核心依赖 ===
+# Python 3.12+
+
+# === HTTP客户端 ===
+httpx>=0.27.0              # 现代化HTTP客户端，支持HTTP/2
+aiohttp>=3.9.0             # 异步HTTP客户端
+requests>=2.31.0           # 同步HTTP客户端（备用）
+
+# === 浏览器自动化 ===
+playwright>=1.40.0         # 浏览器自动化（推荐）
+selenium>=4.16.0           # 浏览器自动化（备用）
+undetected-chromedriver>=3.5.0  # 反检测Chrome驱动
+
+# === 异步任务调度 ===
+apscheduler>=3.10.0        # 任务调度
+asyncio>=3.4.3             # 异步IO
+
+# === 数据处理 ===
+pydantic>=2.5.0            # 数据验证
+pyyaml>=6.0.1              # YAML配置解析
+python-dotenv>=1.0.0       # 环境变量管理
+
+# === 数据库 ===
+sqlalchemy>=2.0.25         # ORM数据库
+aiosqlite>=0.19.0          # 异步SQLite
+
+# === 网络工具 ===
+beautifulsoup4>=4.12.0     # HTML解析
+lxml>=5.1.0                # XML/HTML解析
+
+# === 代理和验证码 ===
+fake-useragent>=1.4.0      # User-Agent生成
+pysocks>=1.7.1             # SOCKS代理支持
+pillow>=10.2.0             # 图像处理（验证码）
+
+# === 日志和监控 ===
+loguru>=0.7.2              # 日志库
+rich>=13.7.0               # 终端美化输出
+
+# === CLI工具 ===
+click>=8.1.7               # 命令行接口
+typer>=0.9.0               # 现代CLI库
+
+# === 通知 ===
+notifiers>=1.3.0           # 多渠道通知
+
+# === 开发工具 ===
+pytest>=7.4.0              # 测试框架
+pytest-asyncio>=0.23.0     # 异步测试
+black>=23.12.0             # 代码格式化
+ruff>=0.1.0                # 代码检查
+mypy>=1.8.0                # 类型检查
+
+# === 安全 ===
+cryptography>=41.0.0       # 加密库
