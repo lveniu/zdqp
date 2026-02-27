@@ -70,5 +70,6 @@ htmlcov/
 .kiro/
 .cline/
 .trace/
+.agents/
 
 nul
