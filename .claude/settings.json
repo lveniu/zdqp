@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd /c \"启动.bat\")",
+      "Bash(cmd /c \"启动后端.bat\")",
+      "Bash(xargs:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(netstat:*)",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8000 -State Listen | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_-Force }\")",
+      "Bash(for:*)",
+      "Bash(do taskkill:*)",
+      "Bash(done)",
+      "Bash(cmd /c \"wmic process where \"\"name=''python.exe'' or name=''pythonw.exe''\"\" delete\")",
+      "Bash(findstr:*)",
+      "Bash(tasklist:*)",
+      "Bash(cmd /c \"test_startup.bat\")"
+    ],
+    "additionalDirectories": [
+      "E:\\整点抢券\\.claude\\skills\\.claude"
+    ]
+  }
+}
