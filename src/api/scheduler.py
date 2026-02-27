@@ -10,7 +10,7 @@ from datetime import datetime
 
 from ..core.schedule_manager import get_schedule_manager
 from ..core.scheduler_models import ScheduleConfig
-from ..database.user_crud import UserCRUD
+from ..database import UserCRUD
 from ..utils import get_logger
 
 logger = get_logger("scheduler_api")
