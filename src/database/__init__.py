@@ -11,6 +11,7 @@ from .crud import (
     CheckinCRUD, GrabCRUD, PointsCRUD, ConfigCRUD,
     Database, get_db as get_crud_db
 )
+from .crud_base import BaseCRUD
 
 __all__ = [
     "init_db", "get_db",
@@ -21,6 +22,7 @@ __all__ = [
     "UserCRUD", "SessionCRUD",
     "CheckinCRUD", "GrabCRUD", "PointsCRUD", "ConfigCRUD",
     "Database", "get_crud_db",
+    "BaseCRUD",  # CRUD 基类
 ]
 
 # 初始化数据库

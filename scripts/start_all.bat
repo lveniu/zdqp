@@ -1,16 +1,30 @@
 @echo off
+chcp 65001 > nul 2>&1
 title Start All Services
-echo Starting Backend and Frontend services...
+cd /d "%~dp0"
+
+echo Starting services...
 echo.
 
-start "" /B cmd /c "scripts\start_backend.bat"
-timeout /t 2 /nobreak > nul
-start "" /B cmd /c "scripts\start_frontend.bat"
+echo Starting backend...
+start "Backend" cmd /k "cd /d "%~dp0.." && python start_web.py"
+
+timeout /t 3 /nobreak > nul
+
+echo Starting frontend...
+start "Frontend" cmd /k "cd /d "%~dp0.." && cd web && npm run dev"
+
+timeout /t 3 /nobreak > nul
 
 echo.
+echo ========================================
 echo Services started!
-echo - Backend: http://localhost:8000
-echo - Frontend: http://localhost:5173
+echo ========================================
 echo.
-echo To stop all services, run: scripts\stop.bat
-timeout /t 3
+echo Backend:  http://localhost:8000
+echo Frontend: http://localhost:5173
+echo API Docs: http://localhost:8000/docs
+echo.
+echo To stop: scripts\stop.bat
+echo.
+timeout /t 5
