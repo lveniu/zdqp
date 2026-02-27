@@ -1,25 +1,27 @@
 """数据库模块"""
 from .models import (
     init_db, get_db,
+    User, UserSession,
     CheckinRecord, GrabRecord, PointsRecord,
     SystemConfig, TaskSchedule,
-    CheckinStats, GrabStats
+    CheckinStats, GrabStats, UserProfile
 )
-from .crud import CheckinCRUD, GrabCRUD, PointsCRUD, ConfigCRUD
-from .user_models import User, UserSession, init_user_db, UserProfile
-from .user_crud import UserCRUD, SessionCRUD
+from .crud import (
+    UserCRUD, SessionCRUD,
+    CheckinCRUD, GrabCRUD, PointsCRUD, ConfigCRUD,
+    Database, get_db as get_crud_db
+)
 
 __all__ = [
     "init_db", "get_db",
+    "User", "UserSession", "UserProfile",
     "CheckinRecord", "GrabRecord", "PointsRecord",
     "SystemConfig", "TaskSchedule",
     "CheckinStats", "GrabStats",
-    "CheckinCRUD", "GrabCRUD", "PointsCRUD", "ConfigCRUD",
-    "User", "UserSession", "UserProfile",
     "UserCRUD", "SessionCRUD",
-    "init_user_db"
+    "CheckinCRUD", "GrabCRUD", "PointsCRUD", "ConfigCRUD",
+    "Database", "get_crud_db",
 ]
 
 # 初始化数据库
 init_db()
-init_user_db()

@@ -364,11 +364,40 @@ const selectUser = (user) => {
   refreshUserStatus(user)
 }
 
+// 从 Cookie 中提取拼多多用户ID
+const extractPddUserId = (cookieStr) => {
+  if (!cookieStr) return null
+  const possibleKeys = ['pdd_user_id', 'user_id', 'customer_id']
+  for (const item of cookieStr.split(';')) {
+    const trimmed = item.trim()
+    if (trimmed.includes('=')) {
+      const [key, value] = trimmed.split('=', 2)
+      if (possibleKeys.includes(key.trim()) && value.trim()) {
+        return value.trim()
+      }
+    }
+  }
+  return null
+}
+
 // 添加用户
 const addUser = async () => {
   if (!newUserForm.value.name || !newUserForm.value.cookies) {
     ElMessage.warning('请填写完整信息')
     return
+  }
+
+  // 从 Cookie 中提取 pdd_user_id 并检查是否已存在
+  const newPddUserId = extractPddUserId(newUserForm.value.cookies)
+  if (newPddUserId) {
+    const existingUser = users.value.find(u => {
+      const existingPddUserId = extractPddUserId(u.cookies)
+      return existingPddUserId === newPddUserId
+    })
+    if (existingUser) {
+      ElMessage.warning(`该拼多多账号（用户ID: ${newPddUserId}）已被账号 "${existingUser.name}" 使用，请勿重复添加`)
+      return
+    }
   }
 
   addUserLoading.value = true

@@ -1,28 +1,109 @@
 """
-数据库模型定义
-使用SQLite存储百亿补贴相关数据
+统一的数据模型
+包含所有数据库表定义
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Boolean, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float, Text, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import relationship
 from datetime import datetime
-import json
+import hashlib
 from pathlib import Path
 
-# 数据库文件路径
+# ==================== 数据库配置 ====================
+
 DB_DIR = Path(__file__).parent.parent.parent / "data"
 DB_DIR.mkdir(exist_ok=True)
 DB_PATH = DB_DIR / "baibuti.db"
 
-# 创建引擎
-engine = create_engine(f"sqlite:///{DB_PATH}", echo=False)
-SessionLocal = sessionmaker(bind=engine)
+# 创建引擎和会话
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+engine = create_engine(
+    f"sqlite:///{DB_PATH}",
+    echo=False,
+    connect_args={"check_same_thread": False}
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
 Base = declarative_base()
 
 
+def init_db():
+    """初始化数据库，创建所有表"""
+    Base.metadata.create_all(bind=engine)
+
+
+def get_db():
+    """获取数据库会话（用于依赖注入）"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# ==================== 用户模型 ====================
+
+class User(Base):
+    """用户表"""
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    password_hash = Column(String(64), nullable=False)
+    phone = Column(String(20), unique=True)
+    pdd_cookies = Column(Text)  # 拼多多Cookie
+    pdd_user_agent = Column(Text)  # 拼多多UA
+    pdd_user_id = Column(String(50), unique=True, index=True)  # 拼多多用户ID
+
+    # 用户状态
+    is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
+
+    # 时间戳
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    last_login = Column(DateTime)
+
+    @property
+    def is_authenticated(self):
+        return self.is_active
+
+    def set_password(self, password: str):
+        """设置密码（SHA256）"""
+        self.password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+    def check_password(self, password: str) -> bool:
+        """验证密码"""
+        return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
+
+
+class UserSession(Base):
+    """用户会话表"""
+    __tablename__ = "user_sessions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    token = Column(String(64), unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+
+    @property
+    def is_valid(self):
+        """检查会话是否有效"""
+        return datetime.now() < self.expires_at
+
+
+# ==================== 业务模型 ====================
+
 class CheckinRecord(Base):
-    """打卡记录表"""
+    """签到记录表"""
     __tablename__ = "checkin_records"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -66,6 +147,8 @@ class PointsRecord(Base):
     created_at = Column(DateTime, default=datetime.now)
 
 
+# ==================== 系统配置模型 ====================
+
 class SystemConfig(Base):
     """系统配置表"""
     __tablename__ = "system_config"
@@ -92,24 +175,10 @@ class TaskSchedule(Base):
     created_at = Column(DateTime, default=datetime.now)
 
 
-# 创建所有表
-def init_db():
-    """初始化数据库"""
-    Base.metadata.create_all(engine)
+# ==================== 辅助类 ====================
 
-
-def get_db():
-    """获取数据库会话"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-# 查询模型
 class CheckinStats:
-    """打卡统计"""
+    """签到统计"""
     def __init__(self, total_checkins: int, consecutive_days: int, total_points: int):
         self.total_checkins = total_checkins
         self.consecutive_days = consecutive_days
@@ -123,3 +192,37 @@ class GrabStats:
         self.week_count = week_count
         self.total_count = total_count
         self.total_value = total_value
+
+
+class UserProfile:
+    """用户资料"""
+    def __init__(self, id: int, username: str, phone: str = None,
+                 is_active: bool = True, is_admin: bool = False,
+                 pdd_user_id: str = None, created_at: datetime = None):
+        self.id = id
+        self.username = username
+        self.phone = phone
+        self.is_active = is_active
+        self.is_admin = is_admin
+        self.pdd_user_id = pdd_user_id
+        self.created_at = created_at
+
+
+# ==================== 导出 ====================
+
+__all__ = [
+    "Base",
+    "engine",
+    "SessionLocal",
+    "DB_PATH",
+    "User",
+    "UserSession",
+    "CheckinRecord",
+    "GrabRecord",
+    "PointsRecord",
+    "SystemConfig",
+    "TaskSchedule",
+    "CheckinStats",
+    "GrabStats",
+    "UserProfile",
+]
