@@ -1,16 +1,37 @@
 # 多平台抢券系统
 
-基于Python实现的多平台自动抢券系统，支持淘宝、京东、美团、拼多多等主流电商平台。
+基于 Python 实现的多平台自动抢券系统，采用插件化架构，轻松扩展新平台。目前已实现拼多多平台适配器，支持百亿补贴自动打卡、积分抢券等功能。包含 Web 管理界面，支持多用户管理。
+
+## 版本
+
+**v2.0.0** - 多用户系统
 
 ## 特性
 
-- **多平台支持** - 插件化架构，轻松扩展新平台
-- **精确计时** - 毫秒级定时任务调度
-- **异步高性能** - 基于asyncio实现高并发抢券
-- **反爬虫对抗** - 支持代理池、随机User-Agent、浏览器模拟
+- **多平台支持** - 插件化架构，轻松扩展淘宝、京东、美团等新平台
+- **Web 管理界面** - Vue.js 前端 + FastAPI 后端，现代化管理体验
+- **多用户系统** - 基于令牌的身份认证，每个用户独立数据隔离
+- **百亿补贴** - 拼多多平台自动每日打卡领积分，使用积分抢 5 元券
+- **精确计时** - 毫秒级定时任务调度，精确抢券
+- **异步高性能** - 基于 asyncio 实现高并发抢券
 - **自动重试** - 失败自动重试，指数退避策略
-- **多渠道通知** - 支持微信、Telegram、钉钉、企业微信通知
-- **日志完善** - 结构化日志，便于问题排查
+- **通知推送** - 支持微信推送通知
+- **数据持久化** - SQLite 数据库记录所有操作历史
+
+## 技术栈
+
+**后端：**
+- Python 3.12+
+- FastAPI - Web 框架
+- SQLAlchemy - ORM
+- asyncio - 异步编程
+- httpx - HTTP 客户端
+- Playwright - 浏览器自动化
+
+**前端：**
+- Vue.js 3
+- Vite
+- Element Plus
 
 ## 项目结构
 
@@ -26,38 +47,80 @@ coupon-grabber/
 │   │   ├── platform.py    # 平台模型
 │   │   ├── coupon.py      # 优惠券模型
 │   │   └── task.py        # 任务模型
-│   ├── clients/           # 客户端
-│   │   ├── http_client.py         # HTTP客户端
-│   │   └── browser_client.py      # 浏览器客户端
+│   ├── clients/           # HTTP 和浏览器客户端
 │   ├── platforms/         # 平台适配器
-│   │   ├── base_adapter.py        # 基类
-│   │   ├── taobao/                # 淘宝
-│   │   ├── jd/                    # 京东
-│   │   ├── meituan/               # 美团
-│   │   └── pinduoduo/             # 拼多多
-│   ├── utils/             # 工具类
-│   └── cli/               # 命令行接口
+│   │   ├── base_adapter.py        # 抽象基类
+│   │   ├── taobao/                # 淘宝（待实现）
+│   │   ├── jd/                    # 京东（待实现）
+│   │   ├── meituan/               # 美团（待实现）
+│   │   └── pinduoduo/             # 拼多多实现
+│   │       ├── adapter.py         # 主适配器
+│   │       ├── baibuti.py         # 百亿补贴逻辑
+│   │       ├── constants.py       # API 端点
+│   │       └── utils/             # 签名、解析工具
+│   ├── database/          # 数据库模型和 CRUD
+│   │   ├── models.py              # 主数据库（签到、抢券、积分）
+│   │   ├── user_models.py         # 用户数据库
+│   │   └── crud.py                # CRUD 操作
+│   ├── api/               # FastAPI 端点
+│   │   ├── main.py        # 主要 API（含认证）
+│   │   └── auth.py        # 认证端点
+│   ├── tools/             # 实用工具（Cookie 获取器）
+│   └── cli/               # 命令行界面
+├── web/                   # Vue.js 前端
+│   ├── src/
+│   │   ├── Login.vue      # 登录页
+│   │   ├── Dashboard.vue  # 仪表盘
+│   │   └── api.js         # API 调用
+│   └── package.json
 ├── config/                # 配置文件
-│   ├── config.yaml        # 主配置
-│   └── accounts.yaml      # 账号配置
-├── logs/                  # 日志目录
+│   └── config.yaml        # 主配置
 ├── data/                  # 数据目录
-└── requirements.txt       # 依赖
+│   └── baibuti.db         # SQLite 数据库
+├── logs/                  # 日志目录
+├── scripts/               # 启动脚本
+│   ├── 启动.bat            # 一键启动（后端，端口自动分配）
+│   ├── stop.bat            # 停止所有服务
+│   ├── start_backend.bat  # 启动后端服务
+│   ├── start_frontend.bat # 启动前端服务
+│   ├── run_test.bat       # 运行测试
+│   └── 手动输入Cookie.bat # Cookie 输入工具
+├── tools/                 # 工具脚本
+│   ├── 快速Cookie提取.py  # Cookie 提取工具
+│   ├── 快速配置Cookie.py  # Cookie 配置工具
+│   ├── 方案1_商品页面登录.py
+│   ├── 方案2_手机直接获取.py
+│   ├── 方案3_扫码登录.py
+│   ├── 如何找到正确的Cookie.py
+│   └── 验证新Cookie.py    # Cookie 验证工具
+├── tests/                 # 测试文件
+│   ├── test_api_logging.py
+│   └── test_baibuti_api.py
+├── docs/                  # 文档目录
+│   ├── 启动指南.md
+│   ├── WEB_GUIDE.md
+│   └── API配置指南.md
+├── start_web.py           # Web 服务器入口
+└── requirements.txt       # Python 依赖
 ```
 
 ## 快速开始
 
 ### 1. 安装依赖
 
+**Python 依赖：**
 ```bash
-# 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 安装依赖
 pip install -r requirements.txt
+```
 
-# 安装Playwright浏览器
+**前端依赖：**
+```bash
+cd web
+npm install
+```
+
+**安装 Playwright 浏览器（用于获取 Cookie）：**
+```bash
 playwright install chromium
 ```
 
@@ -67,45 +130,94 @@ playwright install chromium
 python -m src.cli.main init
 ```
 
-### 3. 配置系统
+### 3. 启动服务
 
-编辑 `config/config.yaml`:
-
-```yaml
-# 应用配置
-app:
-  env: development
-  debug: true
-
-# 代理配置（可选）
-proxy:
-  enabled: false
-  pool_url: ""
-
-# 通知配置（可选）
-notification:
-  serverchan_key: ""
-  telegram_bot_token: ""
-  telegram_chat_id: ""
-
-# 调度器配置
-scheduler:
-  max_workers: 10  # 最大并发数
-  retry_times: 3   # 重试次数
+**方式一：使用 Windows 批处理文件（推荐）**
+```bash
+scripts/启动.bat
 ```
 
-编辑 `config/accounts.yaml` 添加账号:
+**方式二：分别启动**
 
-```yaml
-accounts:
-  - platform: taobao
-    username: "your_username"
-    password: "your_password"
-    cookies: "your_cookies"
-    enabled: true
+后端 API（端口自动分配）：
+```bash
+python start_web.py
+# 端口从 9000 开始自动分配
+# 启动后会显示实际端口号和 API 文档地址
 ```
 
-### 4. 使用CLI
+前端：
+```bash
+cd web
+npm run dev
+# 运行在 http://localhost:5173
+```
+
+### 4. 停止服务
+
+**使用停止脚本**
+```bash
+scripts/stop.bat
+```
+
+**手动停止**
+- 后端：按 `Ctrl+C`
+- 前端：按 `Ctrl+C`
+
+### 4. 使用系统
+
+1. 访问 http://localhost:5173 打开 Web 界面
+2. 注册新用户（需要提供拼多多 Cookie）
+3. 登录后使用功能
+
+## API 接口
+
+### 认证接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/auth/register` | 注册新用户（含 PDD Cookie） |
+| POST | `/api/auth/login` | 登录并获取令牌 |
+| POST | `/api/auth/logout` | 登出 |
+| GET | `/api/auth/me` | 获取当前用户信息 |
+| POST | `/api/auth/update-pdd-config` | 更新 PDD Cookie |
+
+### 主要接口（需要认证）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/status` | 获取用户状态 |
+| POST | `/api/checkin` | 每日签到领积分 |
+| POST | `/api/grab` | 使用积分抢券 |
+| GET | `/api/records/checkin` | 签到历史 |
+| GET | `/api/records/grab` | 抢券历史 |
+| GET | `/api/stats` | 统计数据 |
+
+### 调度器接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/scheduler/status` | 获取调度器状态 |
+| GET | `/api/scheduler/schedules` | 获取所有调度配置 |
+| GET | `/api/scheduler/schedules/{name}` | 获取调度配置详情 |
+| GET | `/api/scheduler/history` | 获取执行历史 |
+| POST | `/api/scheduler/control` | 控制调度器（启动/停止/重载） |
+| POST | `/api/scheduler/schedules/{name}/toggle` | 切换调度启用状态 |
+| POST | `/api/scheduler/schedules/{name}/execute` | 立即执行指定任务 |
+
+**认证方式：** 在请求头中添加 `Authorization: Bearer <token>`
+
+## 百亿补贴系统
+
+拼多多百亿补贴项目的专用系统：
+
+- **每日打卡** - 每天自动打卡领积分
+- **积分抢券** - 使用 100 积分抢 5 元优惠券
+- **限制规则**：
+  - 每天可打卡 1 次
+  - 每周可使用积分抢券 2 次
+
+## 命令行工具
 
 ```bash
 # 查看系统信息
@@ -114,72 +226,126 @@ python -m src.cli.main info
 # 列出支持的平台
 python -m src.cli.main platforms
 
-# 抢券
-python -m src.cli.main grab taobao \
-  --url "https://xxx" \
-  --time "2024-03-01 10:00:00" \
-  --account "default"
-
 # 查看调度器状态
 python -m src.cli.main status
 
-# 测试通知
-python -m src.cli.main notify \
-  --title "测试" \
-  --content "这是一条测试消息"
+# 拼多多特定命令
+python -m src.cli pdd status      # 检查账户状态
+python -m src.cli pdd check <URL> # 检查优惠券状态
+python -m src.cli pdd grab <URL>  # 抢取优惠券
+
+# Cookie 管理
+python -m src.cli cookie --help   # Cookie 获取工具
 ```
 
 ## 配置说明
 
-### 环境变量
+### 调度器配置 (config/scheduler.yaml)
 
-复制 `.env.example` 为 `.env` 并配置:
+调度器配置文件用于设置定时抢券任务，支持多平台、多时间点、多条件判断：
 
-```bash
-# 应用配置
-APP_ENV=development
-APP_DEBUG=true
-LOG_LEVEL=INFO
-
-# 代理配置
-PROXY_ENABLED=false
-PROXY_POOL_URL=
-
-# 通知配置
-NOTIFY_SERVERCHAN_KEY=
-NOTIFY_TELEGRAM_BOT_TOKEN=
-NOTIFY_TELEGRAM_CHAT_ID=
-
-# 验证码服务
-CAPTCHA_2CAPTCHA_API_KEY=
+```yaml
+# 定时抢券示例
+schedules:
+  - name: "百亿补贴5元券定时抢"
+    enabled: true
+    platform: "pinduoduo"
+    task_type: "baibuti_grab"
+    times:
+      - "10:00"
+      - "14:00"
+      - "21:00"
+    conditions:
+      # 今天没抢到过券
+      - type: "daily_limit"
+        limit_type: "grab_success"
+        max_count: 0
+      # 本周积分抢券未超限（最多2次/周）
+      - type: "weekly_limit"
+        limit_type: "points_grab"
+        max_count: 2
+    params:
+      coupon_type: "5元无门槛券"
+      use_points: 100
 ```
 
-### 通知渠道配置
+**配置说明：**
+- `times`: 执行时间点列表（24小时制）
+- `conditions`: 执行条件（所有条件都满足才执行）
+  - `daily_limit`: 每日限制
+  - `weekly_limit`: 每周限制
+- `params`: 任务参数
 
-#### ServerChan (微信推送)
+### 主配置 (config/config.yaml)
 
-1. 访问 https://sct.ftqq.com/
-2. 获取SendKey
-3. 填入 `config.yaml` 的 `notification.serverchan_key`
+```yaml
+app:
+  env: development
+  debug: true
 
-#### Telegram
+scheduler:
+  max_workers: 10      # 并发任务限制
+  retry_times: 3       # 失败重试次数
 
-1. 创建Bot，获取Bot Token
-2. 获取Chat ID
-3. 填入配置文件
+notification:
+  serverchan_key: ""   # 微信推送通知
+  telegram_bot_token: ""
 
-#### 钉钉
+platforms:
+  pinduoduo:
+    enabled: true
+    base_url: "https://mobile.yangkeduo.com"
+```
 
-1. 创建群机器人
-2. 获取Webhook地址
-3. 填入配置文件
+### 拼多多 Cookie 格式
+
+每个用户需要配置自己的拼多多 Cookie，必须包含：
+
+- `PDDAccessToken` - 主认证令牌
+- `pdd_user_id` - 用户标识符
+- 其他会话 Cookie
+
+**获取 Cookie 的方式：**
+1. 使用项目提供的 Cookie 获取工具：`scripts/手动输入Cookie.bat`
+2. 使用浏览器开发者工具手动获取
+
+## Cookie 管理工具
+
+项目提供了多种 Cookie 获取方式，位于 `tools/` 目录：
+
+| 文件 | 说明 |
+|------|------|
+| `tools/快速Cookie提取.py` | 快速提取 Cookie |
+| `tools/快速配置Cookie.py` | Cookie 配置工具 |
+| `tools/方案1_商品页面登录.py` | 通过商品页面登录 |
+| `tools/方案2_手机直接获取.py` | 手机直接获取 |
+| `tools/方案3_扫码登录.py` | 扫码登录 |
+| `tools/如何找到正确的Cookie.py` | Cookie 获取指南 |
+| `tools/验证新Cookie.py` | 验证 Cookie 有效性 |
+| `scripts/手动输入Cookie.bat` | 交互式 Cookie 输入工具 |
+
+## 测试
+
+```bash
+# 测试拼多多适配器功能
+python test_pdd_adapter.py
+
+# 测试 Cookie 认证
+python test_login.py
+
+# 测试 Web 系统
+python test_web_system.py
+
+# 测试百亿补贴 API
+python tests/test_baibuti_api.py
+```
 
 ## 开发指南
 
 ### 添加新平台适配器
 
 1. 在 `src/platforms/` 创建平台目录
-2. 继承 `BaseAdapter` 类:
+2. 继承 `BaseAdapter` 类：
 
 ```python
 from ..base_adapter import BaseAdapter
@@ -204,32 +370,52 @@ class MyPlatformAdapter(BaseAdapter):
 
 3. 在 `config/config.yaml` 添加平台配置
 
+### 多用户模式
+
+所有受保护端点遵循此模式：
+
+```python
+@app.get("/api/protected-endpoint")
+async def protected_function(current_user: dict = Depends(get_current_user)):
+    username = current_user["username"]
+    # 使用 username 进行所有数据操作
+```
+
+用户账户获取：
+
+```python
+account = get_user_account(username)  # 返回含 Cookie 的 Account 对象
+manager = BaiButiManager(account)
+```
+
 ## 注意事项
 
-1. **合法使用** - 请遵守各平台的使用条款，合理使用
-2. **频率限制** - 建议设置合理的并发数和重试间隔
-3. **账号安全** - 妥善保管账号信息，不要提交到版本控制
-4. **Cookie有效期** - 定期更新Cookie，避免失效
+1. **Cookie 过期** - PDD Cookie 会定期过期，登录失败时使用 Cookie 获取工具刷新
+2. **请求限制** - 系统包含请求节流以避免反爬虫检测，谨慎调整 `scheduler.max_workers`
+3. **时间精度** - 调度器使用毫秒级精度，`precise_grab()` 方法允许预先调度请求
+4. **账号安全** - 切勿提交 `config/accounts.yaml` 或 `.env` 文件到版本控制
+5. **认证令牌** - API 认证令牌会过期，需要重新登录
 
-## 待实现功能
+## 故障排除
 
-- [ ] 完善各平台适配器
-- [ ] 代理池自动获取
-- [ ] 验证码自动识别
-- [ ] Web管理界面
-- [ ] 数据持久化
-- [ ] 分布式抢券
+| 问题 | 解决方案 |
+|------|----------|
+| 登录失败 | 运行 `python test_pdd_adapter.py` 验证 Cookie |
+| 数据库错误 | 删除 `data/baibuti.db` 并重启以重新初始化 |
+| 导入错误 | 确保虚拟环境已激活且依赖已安装 |
+| 认证错误（401） | 检查是否设置了 `Authorization: Bearer <token>` 请求头 |
+| Cookie 错误 | 每个用户必须配置自己的 PDD Cookie |
 
 ## 技术栈
 
 - **Python 3.12+**
+- **FastAPI** - Web 框架
+- **Vue.js 3** - 前端框架
+- **SQLAlchemy** - ORM
 - **asyncio** - 异步编程
-- **httpx** - HTTP客户端
+- **httpx** - HTTP 客户端
 - **Playwright** - 浏览器自动化
-- **APScheduler** - 任务调度
 - **Pydantic** - 数据验证
-- **Typer** - CLI框架
-- **Loguru** - 日志系统
 
 ## 许可证
 

@@ -109,6 +109,22 @@ class UserCRUD:
             db.close()
 
     @staticmethod
+    def get_all_active_usernames() -> List[str]:
+        """获取所有活跃用户的用户名列表"""
+        db = SessionLocal()
+        try:
+            users = db.query(User.username).filter(
+                and_(
+                    User.is_active == True,
+                    User.pdd_cookies.isnot(None),
+                    User.pdd_cookies != ""
+                )
+            ).all()
+            return [u[0] for u in users]
+        finally:
+            db.close()
+
+    @staticmethod
     def update_user(user_id: int, **kwargs) -> Optional[User]:
         """更新用户信息"""
         db = SessionLocal()

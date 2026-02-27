@@ -4,7 +4,7 @@
       <!-- 顶部导航 -->
       <el-header style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0">
         <div style="display: flex; align-items: center; height: 100%; padding: 0 20px;">
-          <h2 style="margin: 0; font-size: 20px;">🎯 百亿补贴自动化系统</h2>
+          <h2 style="margin: 0; font-size: 20px;">🎯 整点抢券</h2>
           <el-button
             type="primary"
             size="small"

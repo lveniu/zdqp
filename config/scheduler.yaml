@@ -1,0 +1,149 @@
+# 调度器配置文件
+# 用于配置定时抢券任务，支持多平台、多时间点、多条件判断
+
+# 全局配置
+global:
+  # 时区设置
+  timezone: "Asia/Shanghai"
+  # 是否启用调度器
+  enabled: true
+  # 任务并发数
+  max_concurrent_tasks: 3
+
+# 定时任务列表
+schedules:
+  # ========== 百亿补贴 5 元无门槛券 ==========
+  - name: "百亿补贴5元券定时抢"
+    enabled: true
+    description: "每天10点、14点、21点准点抢5元无门槛券（如今天未抢到）"
+    platform: "pinduoduo"
+    task_type: "baibuti_grab"
+    priority: "high"
+
+    # 执行时间点（24小时制）
+    times:
+      - "10:00"
+      - "14:00"
+      - "21:00"
+
+    # 执行条件（所有条件都满足才执行）
+    conditions:
+      # 条件1：今天没抢到过券
+      - type: "daily_limit"
+        limit_type: "grab_success"
+        max_count: 0
+
+      # 条件2：本周积分抢券次数未超限（最多2次/周）
+      - type: "weekly_limit"
+        limit_type: "points_grab"
+        max_count: 2
+
+    # 任务参数
+    params:
+      coupon_type: "5元无门槛券"
+      use_points: 100  # 使用100积分
+      timeout: 30  # 超时时间（秒）
+
+    # 重试配置
+    retry:
+      enabled: true
+      max_times: 2
+      interval: 3  # 秒
+
+    # 失败后是否继续尝试下一个时间点
+    continue_on_failure: true
+
+  # ========== 百亿补贴每日签到 ==========
+  - name: "百亿补贴每日签到"
+    enabled: true
+    description: "每天早上9点自动签到领积分"
+    platform: "pinduoduo"
+    task_type: "baibuti_checkin"
+    priority: "medium"
+
+    times:
+      - "09:00"
+
+    conditions:
+      # 条件：今天未签到过
+      - type: "daily_limit"
+        limit_type: "checkin"
+        max_count: 0
+
+    params:
+      timeout: 10
+
+    retry:
+      enabled: true
+      max_times: 3
+      interval: 5
+
+    continue_on_failure: false
+
+  # ========== 示例：扩展其他平台 ==========
+  # 淘宝平台定时抢券（示例，待实现）
+  - name: "淘宝优惠券定时抢"
+    enabled: false  # 未启用
+    description: "淘宝平台定时抢券"
+    platform: "taobao"
+    task_type: "grab_coupon"
+    priority: "high"
+
+    times:
+      - "12:00"
+      - "20:00"
+
+    conditions:
+      - type: "daily_limit"
+        limit_type: "grab_success"
+        max_count: 0
+
+    params:
+      coupon_url: ""  # 券链接
+      timeout: 30
+
+    retry:
+      enabled: true
+      max_times: 3
+      interval: 2
+
+  # 京东平台定时抢券（示例，待实现）
+  - name: "京东优惠券定时抢"
+    enabled: false
+    description: "京东平台定时抢券"
+    platform: "jd"
+    task_type: "grab_coupon"
+    priority: "high"
+
+    times:
+      - "10:00"
+      - "18:00"
+
+    conditions:
+      - type: "daily_limit"
+        limit_type: "grab_success"
+        max_count: 0
+
+    params:
+      coupon_url: ""
+      timeout: 30
+
+    retry:
+      enabled: true
+      max_times: 3
+      interval: 2
+
+# 条件类型说明：
+# - daily_limit: 每日限制（checkin: 签到, grab_success: 抢券成功, points_grab: 积分抢券）
+# - weekly_limit: 每周限制
+# - custom_condition: 自定义条件
+
+# 任务类型说明：
+# - baibuti_checkin: 百亿补贴签到
+# - baibuti_grab: 百亿补贴积分抢券
+# - grab_coupon: 通用抢券（用于其他平台）
+
+# 优先级说明：
+# - high: 高优先级
+# - medium: 中优先级
+# - low: 低优先级

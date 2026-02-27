@@ -66,8 +66,9 @@ htmlcov/
 .playwright/
 .ms-playwright/
 
-# claude
-.claude/
+# 
+.kiro/
 .cline/
+.trace/
 
 nul

@@ -4,10 +4,10 @@ Cookie获取工具CLI命令
 
 import asyncio
 import typer
-from rich.console import Console
-from rich.table import Table
 from pathlib import Path
+from typing import List, Dict
 
+from ...core.click_output import get_output, Icons
 from .pdd_login import PddCookieGrabber
 from .mobile_emulator import MobileEmulator
 
@@ -16,7 +16,9 @@ app = typer.Typer(
     help="Cookie获取工具",
     no_args_is_help=True,
 )
-console = Console()
+
+# 使用统一的 Click 输出
+output = get_output()
 
 
 @app.command()
@@ -35,28 +37,28 @@ def pdd(
         cookie pdd --device iPhone_14
         cookie pdd --timeout 600
     """
-    console.print(Panel.fit(
-        "[bold cyan]拼多多Cookie获取工具[/bold cyan]\n\n"
-        "本工具将:\n"
-        "1. 启动移动端模拟浏览器\n"
-        "2. 打开拼多多H5页面\n"
-        "3. 等待您完成登录\n"
-        "4. 自动提取Cookie\n"
-        "5. 保存到配置文件",
-        border_style="cyan"
-    ))
+    output.panel(
+        f"{Icons.ARROW_RIGHT} 启动移动端模拟浏览器\n"
+        f"{Icons.ARROW_RIGHT} 打开拼多多H5页面\n"
+        f"{Icons.ARROW_RIGHT} 等待您完成登录\n"
+        f"{Icons.ARROW_RIGHT} 自动提取Cookie\n"
+        f"{Icons.ARROW_RIGHT} 保存到配置文件",
+        title="拼多多Cookie获取工具"
+    )
 
     # 显示支持的设备列表
-    console.print("\n[bold]支持的设备:[/bold]")
+    output.print_header("支持的设备", level=3)
     devices = MobileEmulator.list_devices()
-    table = Table(show_header=False)
-    table.add_column("设备名", style="cyan")
-    table.add_column("User-Agent", style="green")
-    for name, ua in devices.items():
-        table.add_row(name, ua)
-    console.print(table)
 
-    console.print(f"\n当前使用: [yellow]{device}[/yellow]")
+    device_data = []
+    for name, ua in devices.items():
+        device_data.append({
+            "设备名": name,
+            "User-Agent": ua,
+        })
+
+    output.print_table(device_data, columns=["设备名", "User-Agent"])
+    output.info(f"当前使用: {device}")
 
     async def run():
         grabber = PddCookieGrabber(
@@ -68,18 +70,19 @@ def pdd(
         try:
             await grabber.run()
 
-            console.print("\n[bold green]✓ Cookie获取完成！[/bold green]")
-            console.print("\n下一步:")
-            console.print("1. Cookie已保存到 config/accounts.yaml")
-            console.print("2. 运行 [cyan]python -m src.cli.main pdd login[/cyan] 测试登录")
-            console.print("3. 使用 [cyan]python -m src.cli.main pdd grab[/cyan] 开始抢券")
+            output.success_panel(
+                f"{Icons.ARROW_RIGHT} Cookie已保存到 config/accounts.yaml\n"
+                f"{Icons.ARROW_RIGHT} 运行 python -m src.cli.main pdd login 测试登录\n"
+                f"{Icons.ARROW_RIGHT} 使用 python -m src.cli.main pdd grab 开始抢券",
+                title="Cookie获取完成！"
+            )
 
         except KeyboardInterrupt:
-            console.print("\n[yellow]用户取消[/yellow]")
+            output.warning("用户取消")
             raise typer.Exit(0)
 
         except Exception as e:
-            console.print(f"\n[red]✗ 失败: {e}[/red]")
+            output.error(f"失败: {e}")
             raise typer.Exit(1)
 
         finally:
@@ -91,22 +94,22 @@ def pdd(
 @app.command()
 def list_devices():
     """列出所有支持的移动设备"""
-    console.print("[bold cyan]支持的移动设备[/bold cyan]\n")
+    output.print_header("支持的移动设备", level=2)
 
     devices = MobileEmulator.DEVICES
 
-    table = Table(show_header=True)
-    table.add_column("设备名", style="cyan")
-    table.add_column("屏幕尺寸", style="green")
-    table.add_column("User-Agent", style="yellow")
-
+    device_data = []
     for name, config in devices.items():
         width = config["viewport"]["width"]
         height = config["viewport"]["height"]
         ua = config["user_agent"][:60] + "..."
-        table.add_row(name, f"{width}x{height}", ua)
+        device_data.append({
+            "设备名": name,
+            "屏幕尺寸": f"{width}x{height}",
+            "User-Agent": ua,
+        })
 
-    console.print(table)
+    output.print_table(device_data, columns=["设备名", "屏幕尺寸", "User-Agent"])
 
 
 @app.command()
@@ -115,12 +118,11 @@ def validate(
 ):
     """验证Cookie有效性"""
     import yaml
-    from pathlib import Path
 
     file_path = Path(file)
 
     if not file_path.exists():
-        console.print(f"[red]✗ 文件不存在: {file}[/red]")
+        output.error(f"文件不存在: {file}")
         raise typer.Exit(1)
 
     with open(file_path, "r", encoding="utf-8") as f:
@@ -129,49 +131,52 @@ def validate(
     accounts = config.get("accounts", [])
 
     if not accounts:
-        console.print("[yellow]未找到账号配置[/yellow]")
+        output.warning("未找到账号配置")
         return
 
-    console.print("[bold cyan]Cookie验证结果[/bold cyan]\n")
-
-    table = Table(show_header=True)
-    table.add_column("平台", style="cyan")
-    table.add_column("用户名", style="green")
-    table.add_column("Cookie", style="yellow")
-    table.add_column("状态", style="bold")
+    output.print_header("Cookie验证结果", level=2)
 
     from .cookie_parser import CookieParser
 
     parser = CookieParser()
     valid_count = 0
 
+    account_data = []
     for acc in accounts:
         platform = acc.get("platform", "N/A")
         username = acc.get("username", "N/A")
         cookies_str = acc.get("cookies", "")
 
         if not cookies_str:
-            status = "[red]✗ 无Cookie[/red]"
+            status = f"{Icons.ERROR} 无Cookie"
+            status_type = "error"
         else:
             cookies = parser.string_to_cookies(cookies_str)
             validation = parser.validate_cookies(cookies)
 
             if validation["valid"]:
-                status = "[green]✓ 有效[/green]"
+                status = f"{Icons.SUCCESS} 有效"
+                status_type = "success"
                 valid_count += 1
             else:
                 missing = ", ".join(validation["missing"])
-                status = f"[red]✗ 缺少: {missing}[/red]"
+                status = f"{Icons.ERROR} 缺少: {missing}"
+                status_type = "error"
 
         # 截断Cookie显示
         cookie_display = cookies_str[:30] + "..." if len(cookies_str) > 30 else cookies_str
         if not cookie_display:
             cookie_display = "N/A"
 
-        table.add_row(platform, username, cookie_display, status)
+        account_data.append({
+            "平台": platform,
+            "用户名": username,
+            "Cookie": cookie_display,
+            "状态": status,
+        })
 
-    console.print(table)
-    console.print(f"\n总计: {len(accounts)} 个账号, {valid_count} 个有效")
+    output.print_table(account_data, columns=["平台", "用户名", "Cookie", "状态"])
+    output.info(f"总计: {len(accounts)} 个账号, {valid_count} 个有效")
 
 
 @app.command()
@@ -183,18 +188,14 @@ def parse(
 
     parser = CookieParser()
 
-    console.print("[bold cyan]Cookie解析结果[/bold cyan]\n")
+    output.print_header("Cookie解析结果", level=2)
 
     # 转换为Cookie列表
     cookies = parser.string_to_cookies(cookie_string)
 
-    console.print(f"解析到 [green]{len(cookies)}[/green] 个Cookie\n")
+    output.info(f"解析到 {len(cookies)} 个Cookie")
 
-    table = Table(show_header=True)
-    table.add_column("名称", style="cyan")
-    table.add_column("值", style="green")
-    table.add_column("说明", style="yellow")
-
+    cookie_data = []
     for cookie in cookies:
         name = cookie["name"]
         value = cookie["value"]
@@ -204,23 +205,27 @@ def parse(
         if len(value) > 40:
             value = value[:40] + "..."
 
-        table.add_row(name, value, desc)
+        cookie_data.append({
+            "名称": name,
+            "值": value,
+            "说明": desc,
+        })
 
-    console.print(table)
+    output.print_table(cookie_data, columns=["名称", "值", "说明"])
 
     # 验证
     validation = parser.validate_cookies(cookies)
-    console.print(f"\n状态: ", end="")
 
     if validation["valid"]:
-        console.print("[green]✓ Cookie完整[/green]")
+        output.success("Cookie完整")
     else:
-        console.print(f"[red]✗ 缺少必要Cookie: {', '.join(validation['missing'])}[/red]")
+        missing = ", ".join(validation['missing'])
+        output.error(f"缺少必要Cookie: {missing}")
 
     if validation["warnings"]:
-        console.print("\n[yellow]建议:[/yellow]")
+        output.warning("建议:")
         for warning in validation["warnings"]:
-            console.print(f"  • {warning}")
+            output.print(f"  {Icons.DOT} {warning}")
 
 
 @app.command()
@@ -233,13 +238,13 @@ def export(
 
     使用 cookie pdd 命令会自动保存JSON文件，此命令用于手动导出。
     """
-    from pathlib import Path
     import json
+    import yaml
 
     file_path = Path(file)
 
     if not file_path.exists():
-        console.print(f"[red]✗ 文件不存在: {file}[/red]")
+        output.error(f"文件不存在: {file}")
         raise typer.Exit(1)
 
     with open(file_path, "r", encoding="utf-8") as f:
@@ -270,7 +275,6 @@ def export(
     }
 
     # 保存到accounts.yaml
-    import yaml
     accounts_file = Path("config/accounts.yaml")
 
     # 读取现有配置
@@ -298,4 +302,4 @@ def export(
     with open(accounts_file, "w", encoding="utf-8") as f:
         yaml.dump({"accounts": existing_accounts}, f, allow_unicode=True, default_flow_style=False)
 
-    console.print(f"[green]✓[/green] 已导出到: {accounts_file}")
+    output.success(f"已导出到: {accounts_file}")

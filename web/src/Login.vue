@@ -3,7 +3,7 @@
     <el-card class="login-card" shadow="hover">
       <template #header>
         <div class="card-header">
-          <span class="title">🎯 百亿补贴自动化系统</span>
+          <span class="title">🎯 整点抢券</span>
         </div>
       </template>
 

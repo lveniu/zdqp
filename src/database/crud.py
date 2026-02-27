@@ -68,6 +68,22 @@ class CheckinCRUD:
             db.close()
 
     @staticmethod
+    def count_today(user_id: str) -> int:
+        """获取今日签到次数"""
+        db = SessionLocal()
+        try:
+            today = datetime.now().strftime("%Y-%m-%d")
+            return db.query(func.count(CheckinRecord.id)).filter(
+                and_(
+                    CheckinRecord.user_id == user_id,
+                    CheckinRecord.checkin_date == today,
+                    CheckinRecord.success == True
+                )
+            ).scalar() or 0
+        finally:
+            db.close()
+
+    @staticmethod
     def get_stats(user_id: str) -> Dict[str, Any]:
         """获取打卡统计"""
         db = SessionLocal()
@@ -181,6 +197,72 @@ class GrabCRUD:
                     GrabRecord.grab_date >= start_date
                 )
             ).order_by(GrabRecord.created_at.desc()).all()
+        finally:
+            db.close()
+
+    @staticmethod
+    def count_success_today(user_id: str) -> int:
+        """获取今日成功抢券次数"""
+        db = SessionLocal()
+        try:
+            today = datetime.now().strftime("%Y-%m-%d")
+            return db.query(func.count(GrabRecord.id)).filter(
+                and_(
+                    GrabRecord.user_id == user_id,
+                    GrabRecord.grab_date == today,
+                    GrabRecord.success == True
+                )
+            ).scalar() or 0
+        finally:
+            db.close()
+
+    @staticmethod
+    def count_success_this_week(user_id: str) -> int:
+        """获取本周成功抢券次数"""
+        db = SessionLocal()
+        try:
+            week = datetime.now().strftime("%Y-W%W")
+            return db.query(func.count(GrabRecord.id)).filter(
+                and_(
+                    GrabRecord.user_id == user_id,
+                    GrabRecord.grab_week == week,
+                    GrabRecord.success == True
+                )
+            ).scalar() or 0
+        finally:
+            db.close()
+
+    @staticmethod
+    def count_points_grab_today(user_id: str) -> int:
+        """获取今日积分抢券次数"""
+        db = SessionLocal()
+        try:
+            today = datetime.now().strftime("%Y-%m-%d")
+            return db.query(func.count(GrabRecord.id)).filter(
+                and_(
+                    GrabRecord.user_id == user_id,
+                    GrabRecord.grab_date == today,
+                    GrabRecord.success == True,
+                    GrabRecord.points_used > 0
+                )
+            ).scalar() or 0
+        finally:
+            db.close()
+
+    @staticmethod
+    def count_points_grab_this_week(user_id: str) -> int:
+        """获取本周积分抢券次数"""
+        db = SessionLocal()
+        try:
+            week = datetime.now().strftime("%Y-W%W")
+            return db.query(func.count(GrabRecord.id)).filter(
+                and_(
+                    GrabRecord.user_id == user_id,
+                    GrabRecord.grab_week == week,
+                    GrabRecord.success == True,
+                    GrabRecord.points_used > 0
+                )
+            ).scalar() or 0
         finally:
             db.close()
 
@@ -309,3 +391,26 @@ class ConfigCRUD:
             db.commit()
         finally:
             db.close()
+
+
+# 数据库访问类 - 提供统一的访问接口
+class Database:
+    """数据库访问类"""
+
+    def __init__(self):
+        self.checkin = CheckinCRUD()
+        self.grab = GrabCRUD()
+        self.points = PointsCRUD()
+        self.config = ConfigCRUD()
+
+
+# 全局数据库实例
+_db: Optional[Database] = None
+
+
+def get_db() -> Database:
+    """获取全局数据库实例"""
+    global _db
+    if _db is None:
+        _db = Database()
+    return _db

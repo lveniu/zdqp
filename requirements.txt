@@ -33,6 +33,9 @@ fake-useragent>=1.4.0      # User-Agent生成
 pysocks>=1.7.1             # SOCKS代理支持
 pillow>=10.2.0             # 图像处理（验证码）
 
+# === 系统工具 ===
+psutil>=5.9.0               # 系统和进程管理
+
 # === 日志和监控 ===
 loguru>=0.7.2              # 日志库
 rich>=13.7.0               # 终端美化输出

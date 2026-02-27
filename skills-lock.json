@@ -1,6 +1,21 @@
 {
   "version": 1,
   "skills": {
+    "api-design-principles": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "1ee396a9c4714df95f1a9f8d156395848e8bd0fac1d70920a0487e8526ec0e55"
+    },
+    "architecture-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "11f648f7e13be442b8279c14924580ebda3bae78fb48e335b2d0d8868f75a4ac"
+    },
+    "async-python-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "94215d2e0debaeb4b09261907c2436cc47d91fe2d65e297a1dc4146b5efd24d2"
+    },
     "dead-code-removal": {
       "source": "89jobrien/steve",
       "sourceType": "github",
@@ -10,6 +25,21 @@
       "source": "brianlovin/claude-config",
       "sourceType": "github",
       "computedHash": "72f1f9e44634a062c3725c3d82b4f53ffbe0dfb82aa38ef3a0ef30a3111a3d7a"
+    },
+    "documentation-standards": {
+      "source": "terrylica/cc-skills",
+      "sourceType": "github",
+      "computedHash": "0d507dd127c0efd68c8e057c4d5602ffd08e5c49772939608c16886b4d1c5645"
+    },
+    "python-design-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "b2ef661bb1c88fad08bc9fd38677dc302b750599260710daaf8a9e0a85fbcf04"
+    },
+    "python-project-structure": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "a9c8b41e1a906a59d574c34e889d655c5dcc5137d13528ba02e5da3943d87f5b"
     }
   }
 }

@@ -62,12 +62,22 @@ class CaptchaConfig:
 
 
 @dataclass
+class LogFrameworkConfig:
+    """日志框架配置"""
+    # 推送配置
+    push_enabled: bool = True
+    push_channels: list = field(default_factory=lambda: ["serverchan"])
+    push_levels: list = field(default_factory=lambda: ["SUCCESS", "ERROR", "CRITICAL"])
+
+
+@dataclass
 class LogConfig:
     """日志配置"""
     level: str = "INFO"
     dir: str = "logs"
     rotation: str = "100 MB"
     retention: str = "30 days"
+    framework: LogFrameworkConfig = field(default_factory=LogFrameworkConfig)
 
 
 @dataclass

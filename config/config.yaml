@@ -7,10 +7,38 @@ app:
 
 # 日志配置
 log:
-  level: INFO  # DEBUG, INFO, WARNING, ERROR
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, SUCCESS
   dir: logs
   rotation: "100 MB"
   retention: "30 days"
+
+  # 新日志框架配置
+  framework:
+    # 日志分类文件开关
+    category_files:
+      api: true      # API请求日志
+      grab: true     # 抢券日志
+      checkin: true  # 签到日志
+      points: true   # 积分日志
+      json: true     # JSON格式日志
+
+    # 推送配置
+    push:
+      enabled: true  # 是否启用重要日志推送
+      channels: ["serverchan", "telegram"]  # 推送渠道
+
+      # 推送级别阈值
+      push_levels:
+        - SUCCESS    # 抢券成功
+        - ERROR      # 错误
+        - CRITICAL   # 严重错误
+
+    # 日志保留策略
+    retention_policies:
+      app: "30 days"      # 主应用日志
+      error: "90 days"    # 错误日志保留更久
+      grab: "60 days"     # 抢券日志
+      success: "90 days"  # 成功日志
 
 # 数据库配置
 database:

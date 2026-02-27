@@ -9,14 +9,13 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from playwright.async_api import async_playwright, Browser, BrowserContext, Page
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
 
+from ...core.click_output import get_output, Icons
 from .mobile_emulator import MobileEmulator
 from .cookie_parser import CookieParser
 
-console = Console()
+# 使用统一的 Click 输出
+output = get_output()
 
 
 class PddCookieGrabber:
@@ -68,7 +67,7 @@ class PddCookieGrabber:
 
     async def start(self):
         """启动浏览器"""
-        console.print("[cyan]启动移动端模拟浏览器...[/cyan]")
+        output.info("启动移动端模拟浏览器...")
 
         self._playwright = await async_playwright().start()
 
@@ -100,8 +99,8 @@ class PddCookieGrabber:
         # 创建页面
         self._page = await self._context.new_page()
 
-        console.print(f"[green]✓[/green] 已启动 {self.device} 模拟器")
-        console.print(f"  User-Agent: {self.emulator.get_user_agent()[:60]}...")
+        output.success(f"已启动 {self.device} 模拟器")
+        output.debug(f"User-Agent: {self.emulator.get_user_agent()[:60]}...")
 
     async def close(self):
         """关闭浏览器"""
@@ -112,7 +111,7 @@ class PddCookieGrabber:
         if self._playwright:
             await self._playwright.stop()
 
-        console.print("[yellow]浏览器已关闭[/yellow]")
+        output.info("浏览器已关闭")
 
     async def navigate_to_login(self) -> bool:
         """
@@ -123,12 +122,12 @@ class PddCookieGrabber:
         """
         login_url = "https://h5.pinduoduo.com/"
 
-        console.print(f"\n[cyan]正在打开拼多多...[/cyan]")
-        console.print(f"  URL: {login_url}")
+        output.info("正在打开拼多多...")
+        output.debug(f"URL: {login_url}")
 
         try:
             await self._page.goto(login_url, wait_until="networkidle", timeout=30000)
-            console.print("[green]✓[/green] 页面加载完成")
+            output.success("页面加载完成")
 
             # 检查是否需要登录
             await asyncio.sleep(2)
@@ -152,21 +151,21 @@ class PddCookieGrabber:
                             is_visible = await element.is_visible()
                             if is_visible:
                                 login_found = True
-                                console.print("[yellow]检测到未登录状态[/yellow]")
+                                output.warning("检测到未登录状态")
                                 break
                     except:
                         continue
 
                 if not login_found:
-                    console.print("[green]可能已经登录[/green]")
+                    output.success("可能已经登录")
 
             except Exception as e:
-                console.print(f"[yellow]检查登录状态时出错: {e}[/yellow]")
+                output.warning(f"检查登录状态时出错: {e}")
 
             return True
 
         except Exception as e:
-            console.print(f"[red]✗[/red] 打开页面失败: {e}")
+            output.error(f"打开页面失败: {e}")
             return False
 
     async def wait_for_login(self, timeout: int = 300) -> bool:
@@ -179,16 +178,14 @@ class PddCookieGrabber:
         Returns:
             bool: 是否登录成功
         """
-        console.print(Panel.fit(
-            "[bold yellow]请在浏览器中完成登录[/bold yellow]\n"
-            "1. 点击登录按钮\n"
-            "2. 选择登录方式（手机号/微信/支付宝等）\n"
-            "3. 完成登录验证\n"
-            "4. 登录成功后程序会自动继续\n"
+        output.panel(
+            f"{Icons.ARROW_RIGHT} 点击登录按钮\n"
+            f"{Icons.ARROW_RIGHT} 选择登录方式（手机号/微信/支付宝等）\n"
+            f"{Icons.ARROW_RIGHT} 完成登录验证\n"
+            f"{Icons.ARROW_RIGHT} 登录成功后程序会自动继续\n"
             f"等待时间: {timeout}秒",
-            title="登录提示",
-            border_style="yellow"
-        ))
+            title="登录提示"
+        )
 
         start_time = asyncio.get_event_loop().time()
 
@@ -196,18 +193,18 @@ class PddCookieGrabber:
             elapsed = asyncio.get_event_loop().time() - start_time
 
             if elapsed > timeout:
-                console.print(f"\n[red]等待超时 ({timeout}秒)[/red]")
+                output.error(f"等待超时 ({timeout}秒)")
                 return False
 
             # 显示倒计时
             remaining = int(timeout - elapsed)
-            console.print(f"  等待登录中... 剩余 {remaining} 秒", end="\r")
+            # 不使用 end="\r" 来避免覆盖问题
 
             # 检查是否登录成功
             is_logged_in = await self._check_login_status()
 
             if is_logged_in:
-                console.print("\n[green]✓[/green] 检测到登录成功！")
+                output.success("检测到登录成功！")
                 return True
 
             await asyncio.sleep(2)
@@ -256,7 +253,7 @@ class PddCookieGrabber:
         Returns:
             Dict: 包含Cookie信息的字典
         """
-        console.print("\n[cyan]正在提取Cookie...[/cyan]")
+        output.info("正在提取Cookie...")
 
         cookies = await self._context.cookies()
 
@@ -290,7 +287,7 @@ class PddCookieGrabber:
         Returns:
             Dict: 账号信息
         """
-        console.print("[cyan]正在获取账号信息...[/cyan]")
+        output.info("正在获取账号信息...")
 
         account_info = {
             "username": "",
@@ -352,10 +349,10 @@ class PddCookieGrabber:
                     account_info["avatar"] = avatar
 
             except Exception as e:
-                console.print(f"[yellow]获取页面账号信息失败: {e}[/yellow]")
+                output.warning(f"获取页面账号信息失败: {e}")
 
         except Exception as e:
-            console.print(f"[yellow]获取账号信息时出错: {e}[/yellow]")
+            output.warning(f"获取账号信息时出错: {e}")
 
         return account_info
 
@@ -379,7 +376,7 @@ class PddCookieGrabber:
         with open(save_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        console.print(f"[green]✓[/green] Cookie已保存到: {save_path}")
+        output.success(f"Cookie已保存到: {save_path}")
         return str(save_path)
 
     def save_to_accounts_yaml(self, cookie_data: Dict[str, Any], account_info: Dict[str, Any]):
@@ -441,34 +438,27 @@ class PddCookieGrabber:
         with open(accounts_file, "w", encoding="utf-8") as f:
             yaml.dump({"accounts": existing_accounts}, f, allow_unicode=True, default_flow_style=False)
 
-        console.print(f"[green]✓[/green] 已更新配置文件: {accounts_file}")
+        output.success(f"已更新配置文件: {accounts_file}")
 
     def display_cookie_summary(self, data: Dict[str, Any], account_info: Dict[str, Any]):
         """显示Cookie摘要信息"""
-        console.print("\n" + "="*60)
-        console.print("[bold cyan]Cookie提取成功[/bold cyan]")
-        console.print("="*60)
+        output.print_separator()
+        output.print_header("Cookie提取成功", level=2)
 
-        table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("项目", style="cyan")
-        table.add_column("值", style="green")
-
-        # 账号信息
-        table.add_row("用户ID", account_info.get("user_id", "N/A"))
-        table.add_row("昵称", account_info.get("nickname", "N/A"))
-        table.add_row("手机号", account_info.get("mobile", "N/A"))
-
-        # Cookie信息
+        # 构建摘要数据
         parsed = data["parsed"]
-        table.add_row("PDD Token", parsed.get("pdd_token", "N/A")[:30] + "..." if parsed.get("pdd_token") else "N/A")
-        table.add_row("Customer ID", parsed.get("customer_id", "N/A"))
+        summary_data = {
+            "用户ID": account_info.get("user_id", "N/A"),
+            "昵称": account_info.get("nickname", "N/A"),
+            "手机号": account_info.get("mobile", "N/A"),
+            "PDD Token": (parsed.get("pdd_token", "N/A")[:30] + "..." if parsed.get("pdd_token") else "N/A"),
+            "Customer ID": parsed.get("customer_id", "N/A"),
+            "设备": data["device"],
+            "提取时间": data["extracted_at"],
+        }
 
-        # 其他信息
-        table.add_row("设备", data["device"])
-        table.add_row("提取时间", data["extracted_at"])
-
-        console.print(table)
-        console.print("="*60)
+        output.print_key_value(summary_data)
+        output.print_separator()
 
     async def run(self) -> Dict[str, Any]:
         """
@@ -505,5 +495,5 @@ class PddCookieGrabber:
             return cookie_data
 
         except Exception as e:
-            console.print(f"\n[red]✗ Cookie获取失败: {e}[/red]")
+            output.error(f"Cookie获取失败: {e}")
             raise

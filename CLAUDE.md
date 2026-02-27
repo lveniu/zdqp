@@ -52,7 +52,7 @@ npm run dev
 
 **或使用 Windows 批处理文件：**
 ```bash
-start.bat
+scripts/start.bat
 ```
 
 ### 测试
@@ -244,7 +244,7 @@ platforms:
 
 4. **账户安全：** 切勿提交 `config/accounts.yaml` 或 `.env` 文件。使用 `.env.example` 作为模板。
 
-5. **Windows 环境：** 项目包含 `.bat` 文件以便 Windows 用户使用（如 `start.bat`、`手动输入Cookie.bat`）。
+5. **Windows 环境：** 项目包含 `.bat` 文件以便 Windows 用户使用（如 `scripts/start.bat`、`scripts/手动输入Cookie.bat`）。
 
 ## 开发流程
 

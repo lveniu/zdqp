@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>整点抢券系统 - 项目架构文档</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .version {
+            background: rgba(255,255,255,0.2);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .danger {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        h2 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        h3 {
+            color: #555;
+            margin: 25px 0 15px 0;
+            font-size: 1.3em;
+        }
+        h4 {
+            color: #666;
+            margin: 20px 0 10px 0;
+            font-size: 1.1em;
+        }
+        .arch-diagram {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .component {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+        }
+        .component.api {
+            border-color: #28a745;
+        }
+        .component.core {
+            border-color: #17a2b8;
+        }
+        .component.platform {
+            border-color: #ffc107;
+        }
+        .component.db {
+            border-color: #dc3545;
+        }
+        .component.web {
+            border-color: #6f42c1;
+        }
+        .component-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .component-title .badge {
+            margin-left: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: white;
+        }
+        .badge.api { background: #28a745; }
+        .badge.core { background: #17a2b8; }
+        .badge.platform { background: #ffc107; color: #333; }
+        .badge.db { background: #dc3545; }
+        .badge.web { background: #6f42c1; }
+        .file-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .file-list li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+            color: #666;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+        .file-list li::before {
+            content: "📄";
+            position: absolute;
+            left: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        .refactor-item {
+            border-left: 3px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            background: #fff5f5;
+            border-radius: 0 4px 4px 0;
+        }
+        .refactor-item.priority-high {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        .refactor-item.priority-medium {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+        .refactor-item.priority-low {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+        .refactor-title {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .priority-tag {
+            font-size: 0.75em;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 10px;
+            color: white;
+        }
+        .priority-tag.high { background: #dc3545; }
+        .priority-tag.medium { background: #ffc107; color: #333; }
+        .priority-tag.low { background: #28a745; }
+        .tab-container {
+            margin: 20px 0;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab:hover {
+            color: #667eea;
+        }
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .flow-diagram {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            padding: 20px 0;
+        }
+        .flow-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .flow-arrow {
+            font-size: 1.5em;
+            color: #667eea;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .stat-label {
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        .nav-menu {
+            position: sticky;
+            top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        .nav-menu ul {
+            list-style: none;
+        }
+        .nav-menu li {
+            padding: 8px 0;
+        }
+        .nav-menu a {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .nav-menu a:hover {
+            color: #764ba2;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 30px;
+        }
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .nav-menu {
+                position: static;
+                max-height: none;
+            }
+        }
+        .duplicate-warning {
+            background: repeating-linear-gradient(
+                45deg,
+                #fff3cd,
+                #fff3cd 10px,
+                #ffeeba 10px,
+                #ffeeba 20px
+            );
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .metrics {
+            display: inline-flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        .metric strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 整点抢券系统</h1>
+            <span class="version">v2.0.0 多用户系统</span>
+            <p style="margin-top: 15px; opacity: 0.9;">
+                基于异步架构的多平台优惠券自动抢购系统，专注于拼多多百亿补贴平台
+            </p>
+            <div class="metrics" style="margin-top: 20px;">
+                <div class="metric"><strong>架构:</strong> 异步 FastAPI + Vue.js</div>
+                <div class="metric"><strong>数据库:</strong> SQLite</div>
+                <div class="metric"><strong>认证:</strong> Token-based</div>
+                <div class="metric"><strong>模式:</strong> 适配器模式</div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <main>
+                <!-- 项目概览 -->
+                <section id="overview">
+                    <h2>📊 项目概览</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">4</div>
+                            <div class="stat-label">核心模块</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">50+</div>
+                            <div class="stat-label">Python 文件</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">4</div>
+                            <div class="stat-label">Vue 组件</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">5</div>
+                            <div class="stat-label">数据库表</div>
+                        </div>
+                    </div>
+
+                    <h3>技术栈</h3>
+                    <table>
+                        <tr>
+                            <th>类别</th>
+                            <th>技术</th>
+                            <th>版本/说明</th>
+                        </tr>
+                        <tr>
+                            <td>后端框架</td>
+                            <td>FastAPI</td>
+                            <td>异步 Web 框架</td>
+                        </tr>
+                        <tr>
+                            <td>前端框架</td>
+                            <td>Vue.js 3</td>
+                            <td>Element Plus UI</td>
+                        </tr>
+                        <tr>
+                            <td>数据库</td>
+                            <td>SQLite</td>
+                            <td>通过 SQLAlchemy ORM</td>
+                        </tr>
+                        <tr>
+                            <td>HTTP 客户端</td>
+                            <td>httpx</td>
+                            <td>异步 HTTP 请求</td>
+                        </tr>
+                        <tr>
+                            <td>浏览器自动化</td>
+                            <td>Playwright</td>
+                            <td>Cookie 获取</td>
+                        </tr>
+                        <tr>
+                            <td>日志</td>
+                            <td>loguru</td>
+                            <td>结构化日志</td>
+                        </tr>
+                    </table>
+                </section>
+
+                <!-- 架构图 -->
+                <section id="architecture">
+                    <h2>🏗️ 系统架构</h2>
+
+                    <h3>分层架构图</h3>
+                    <div class="arch-diagram">
+                        <div class="component web">
+                            <div class="component-title">
+                                🌐 Web 前端层
+                                <span class="badge web">Vue.js</span>
+                            </div>
+                            <ul class="file-list">
+                                <li>web/src/App.vue - 主应用组件</li>
+                                <li>web/src/Login.vue - 登录页面</li>
+                                <li>web/src/api.js - API 客户端</li>
+                                <li>web/src/main.js - 入口文件</li>
+                            </ul>
+                        </div>
+
+                        <div style="text-align: center; color: #999; padding: 10px;">
+                            ⬇️ HTTP/REST API ⬇️
+                        </div>
+
+                        <div class="component api">
+                            <div class="component-title">
+                                🔌 API 网关层
+                                <span class="badge api">FastAPI</span>
+                            </div>
+                            <ul class="file-list">
+                                <li><strong>src/api/main.py</strong> - 主 API 路由（简化版）</li>
+                                <li><strong>src/api/simple.py</strong> - 无认证 API</li>
+                                <li><strong>src/api/auth.py</strong> - 认证 API（多用户）</li>
+                            </ul>
+                        </div>
+
+                        <div style="text-align: center; color: #999; padding: 10px;">
+                            ⬇️ 业务调用 ⬇️
+                        </div>
+
+                        <div class="component core">
+                            <div class="component-title">
+                                ⚙️ 核心业务层
+                                <span class="badge core">Core</span>
+                            </div>
+                            <ul class="file-list">
+                                <li><strong>src/core/scheduler.py</strong> - 异步任务调度器</li>
+                                <li><strong>src/core/config.py</strong> - 配置管理</li>
+                                <li><strong>src/core/logger.py</strong> - 日志系统</li>
+                                <li><strong>src/core/notifier.py</strong> - 通知系统</li>
+                            </ul>
+                        </div>
+
+                        <div style="text-align: center; color: #999; padding: 10px;">
+                            ⬇️ 平台适配 ⬇️
+                        </div>
+
+                        <div class="component platform">
+                            <div class="component-title">
+                                🎯 平台适配器层
+                                <span class="badge platform">Platforms</span>
+                            </div>
+                            <ul class="file-list">
+                                <li><strong>src/platforms/base_adapter.py</strong> - 抽象基类</li>
+                                <li><strong>src/platforms/pinduoduo/adapter.py</strong> - 拼多多适配器</li>
+                                <li><strong>src/platforms/pinduoduo/baibuti.py</strong> - 百亿补贴业务</li>
+                                <li><strong>src/platforms/pinduoduo/constants.py</strong> - API 常量</li>
+                                <li><strong>src/platforms/pinduoduo/utils/</strong> - 工具集</li>
+                                <li><strong>src/platforms/jd/</strong> - 京东适配器（预留）</li>
+                                <li><strong>src/platforms/taobao/</strong> - 淘宝适配器（预留）</li>
+                                <li><strong>src/platforms/meituan/</strong> - 美团适配器（预留）</li>
+                            </ul>
+                        </div>
+
+                        <div style="text-align: center; color: #999; padding: 10px;">
+                            ⬇️ 数据持久化 ⬇️
+                        </div>
+
+                        <div class="component db">
+                            <div class="component-title">
+                                💾 数据层
+                                <span class="badge db">SQLite</span>
+                            </div>
+                            <ul class="file-list">
+                                <li><strong>src/database/models.py</strong> - 主数据模型</li>
+                                <li><strong>src/database/user_models.py</strong> - 用户数据模型</li>
+                                <li><strong>src/database/crud.py</strong> - 数据库操作</li>
+                                <li><strong>src/database/user_crud.py</strong> - 用户数据库操作</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3>数据流图</h3>
+                    <div class="flow-diagram">
+                        <div class="flow-box">🌐 前端请求</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box">🔌 FastAPI</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box">🎯 适配器</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box">📱 PDD API</div>
+                        <div class="flow-arrow">↔</div>
+                        <div class="flow-box">💾 SQLite</div>
+                    </div>
+                </section>
+
+                <!-- 目录结构 -->
+                <section id="directory">
+                    <h2>📁 目录结构</h2>
+                    <pre><code>整点抢券/
+├── 📂 src/                    # 源代码目录
+│   ├── 📂 api/                # API 接口层
+│   │   ├── main.py           # 主路由（简化版）
+│   │   ├── simple.py         # 无认证 API
+│   │   └── auth.py           # 认证 API（多用户版）
+│   │
+│   ├── 📂 core/              # 核心模块
+│   │   ├── config.py         # 配置管理
+│   │   ├── scheduler.py      # 任务调度器
+│   │   ├── logger.py         # 日志系统
+│   │   └── notifier.py       # 通知系统
+│   │
+│   ├── 📂 platforms/         # 平台适配器
+│   │   ├── base_adapter.py   # 抽象基类
+│   │   └── pinduoduo/        # 拼多多实现
+│   │       ├── adapter.py    # 主适配器
+│   │       ├── baibuti.py    # 百亿补贴业务
+│   │       ├── constants.py  # API 常量
+│   │       └── utils/        # 工具集
+│   │
+│   ├── 📂 database/          # 数据层
+│   │   ├── models.py         # 主数据模型
+│   │   ├── user_models.py    # 用户模型
+│   │   ├── crud.py           # CRUD 操作
+│   │   └── user_crud.py      # 用户 CRUD
+│   │
+│   ├── 📂 clients/           # HTTP 客户端
+│   │   ├── http_client.py    # HTTP 客户端
+│   │   └── browser_client.py # 浏览器客户端
+│   │
+│   ├── 📂 models/            # 数据模型
+│   │   ├── platform.py       # 平台模型
+│   │   ├── coupon.py         # 优惠券模型
+│   │   └── task.py           # 任务模型
+│   │
+│   ├── 📂 cli/               # 命令行工具
+│   │   └── main.py           # CLI 入口
+│   │
+│   └── 📂 tools/             # 工具集
+│       └── cookie_grabber/   # Cookie 获取工具
+│
+├── 📂 web/                   # Vue.js 前端
+│   ├── src/
+│   │   ├── App.vue          # 主组件
+│   │   ├── Login.vue        # 登录页
+│   │   ├── api.js           # API 客户端
+│   │   └── main.js          # 入口
+│   └── package.json
+│
+├── 📂 config/                # 配置文件
+│   ├── config.yaml          # 主配置
+│   └── cookies/             # Cookie 存储
+│
+├── 📂 data/                  # 数据目录
+│   └── baibuti.db           # SQLite 数据库
+│
+├── 📂 logs/                  # 日志目录
+├── 📂 tests/                 # 测试文件
+├── 📂 tools/                 # 独立工具脚本
+├── 📂 docs/                  # 文档目录
+│
+├── start_web.py             # Web 服务入口
+├── requirements.txt         # Python 依赖
+├── .gitignore
+├── CLAUDE.md                # 项目说明
+└── README.md</code></pre>
+                </section>
+
+                <!-- 核心模块说明 -->
+                <section id="modules">
+                    <h2>🔧 核心模块说明</h2>
+
+                    <div class="tab-container">
+                        <div class="tabs">
+                            <button class="tab active" onclick="switchTab(event, 'platform-adapter')">平台适配器</button>
+                            <button class="tab" onclick="switchTab(event, 'database')">数据库</button>
+                            <button class="tab" onclick="switchTab(event, 'scheduler')">调度器</button>
+                            <button class="tab" onclick="switchTab(event, 'api-layer')">API 层</button>
+                        </div>
+
+                        <div id="platform-adapter" class="tab-content active">
+                            <h4>平台适配器模式</h4>
+                            <p>所有平台继承自 <code>BaseAdapter</code> 抽象基类，实现统一接口：</p>
+                            <pre><code>class BaseAdapter(ABC):
+    @abstractmethod
+    async def login(self) -> TaskResult
+
+    @abstractmethod
+    async def grab_coupon(self, coupon: CouponModel) -> TaskResult
+
+    @abstractmethod
+    async def check_coupon_status(self, coupon: CouponModel) -> Dict</code></pre>
+
+                            <h4>拼多多适配器</h4>
+                            <ul class="file-list">
+                                <li>PinduoduoAdapter - 主适配器实现</li>
+                                <li>BaiButiManager - 百亿补贴专用管理器</li>
+                                <li>签名生成工具</li>
+                                <li>解析工具</li>
+                            </ul>
+                        </div>
+
+                        <div id="database" class="tab-content">
+                            <h4>数据库表结构</h4>
+                            <table>
+                                <tr>
+                                    <th>表名</th>
+                                    <th>用途</th>
+                                    <th>关键字段</th>
+                                </tr>
+                                <tr>
+                                    <td>checkin_records</td>
+                                    <td>签到记录</td>
+                                    <td>user_id, checkin_date, points_gained</td>
+                                </tr>
+                                <tr>
+                                    <td>grab_records</td>
+                                    <td>抢券记录</td>
+                                    <td>user_id, grab_date, coupon_value</td>
+                                </tr>
+                                <tr>
+                                    <td>points_records</td>
+                                    <td>积分记录</td>
+                                    <td>user_id, points_change, balance</td>
+                                </tr>
+                                <tr>
+                                    <td>users</td>
+                                    <td>用户账户</td>
+                                    <td>username, password_hash, pdd_cookies</td>
+                                </tr>
+                                <tr>
+                                    <td>user_sessions</td>
+                                    <td>会话管理</td>
+                                    <td>token, user_id, expires_at</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div id="scheduler" class="tab-content">
+                            <h4>异步调度器特性</h4>
+                            <ul>
+                                <li>✅ 毫秒级定时精度</li>
+                                <li>✅ 工作池并发控制</li>
+                                <li>✅ 指数退避重试</li>
+                                <li>✅ 优雅关闭机制</li>
+                            </ul>
+                            <pre><code>class AsyncScheduler:
+    def __init__(self, max_workers: int = 10)
+    async def schedule(self, task: Coroutine, run_at: datetime)
+    async def precise_grab(self, url: str, timestamp: int)</code></pre>
+                        </div>
+
+                        <div id="api-layer" class="tab-content">
+                            <h4>API 端点</h4>
+                            <table>
+                                <tr>
+                                    <th>端点</th>
+                                    <th>方法</th>
+                                    <th>认证</th>
+                                    <th>说明</th>
+                                </tr>
+                                <tr>
+                                    <td>/api/health</td>
+                                    <td>GET</td>
+                                    <td>❌</td>
+                                    <td>健康检查</td>
+                                </tr>
+                                <tr>
+                                    <td>/api/status</td>
+                                    <td>POST</td>
+                                    <td>❌</td>
+                                    <td>账户状态</td>
+                                </tr>
+                                <tr>
+                                    <td>/api/checkin</td>
+                                    <td>POST</td>
+                                    <td>❌</td>
+                                    <td>每日签到</td>
+                                </tr>
+                                <tr>
+                                    <td>/api/grab</td>
+                                    <td>POST</td>
+                                    <td>❌</td>
+                                    <td>抢取优惠券</td>
+                                </tr>
+                                <tr>
+                                    <td>/api/auth/register</td>
+                                    <td>POST</td>
+                                    <td>❌</td>
+                                    <td>用户注册</td>
+                                </tr>
+                                <tr>
+                                    <td>/api/auth/login</td>
+                                    <td>POST</td>
+                                    <td>❌</td>
+                                    <td>用户登录</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 重构建议 -->
+                <section id="refactor">
+                    <h2>🔨 重构建议</h2>
+
+                    <div class="warning">
+                        <strong>⚠️ 重要:</strong> 以下是基于代码分析的重构建议，旨在提高代码质量和可维护性。
+                    </div>
+
+                    <h3>🚨 高优先级问题</h3>
+
+                    <div class="refactor-item priority-high">
+                        <div class="refactor-title">
+                            1. API 架构重复问题
+                            <span class="priority-tag high">高优先级</span>
+                        </div>
+                        <p><strong>问题描述:</strong> 存在两套 API 系统，造成架构混乱：</p>
+                        <ul>
+                            <li><code>src/api/main.py</code> + <code>src/api/simple.py</code> - 简化版 API（无认证）</li>
+                            <li><code>src/api/auth.py</code> - 完整认证 API（多用户）</li>
+                        </ul>
+                        <p><strong>建议:</strong></p>
+                        <ul>
+                            <li>决定使用哪套 API 架构</li>
+                            <li>如需简化版，将认证设为可选而非两套代码</li>
+                            <li>删除重复代码，统一入口</li>
+                        </ul>
+                    </div>
+
+                    <div class="refactor-item priority-high">
+                        <div class="refactor-title">
+                            2. 数据库模型分散
+                            <span class="priority-tag high">高优先级</span>
+                        </div>
+                        <p><strong>问题描述:</strong> 数据库模型分布在多个文件：</p>
+                        <ul>
+                            <li><code>src/database/models.py</code> - 主数据模型（签到、抢券、积分）</li>
+                            <li><code>src/database/user_models.py</code> - 用户模型（用户、会话）</li>
+                        </ul>
+                        <p><strong>建议:</strong></p>
+                        <ul>
+                            <li>合并为单一的 <code>models.py</code> 文件</li>
+                            <li>或按功能模块清晰分组（base.py, user.py, business.py）</li>
+                        </ul>
+                    </div>
+
+                    <div class="refactor-item priority-high">
+                        <div class="refactor-title">
+                            3. CRUD 操作重复
+                            <span class="priority-tag high">高优先级</span>
+                        </div>
+                        <p><strong>问题描述:</strong> CRUD 操作分散在：</p>
+                        <ul>
+                            <li><code>src/database/crud.py</code></li>
+                            <li><code>src/database/user_crud.py</code></li>
+                        </ul>
+                        <p><strong>建议:</strong></p>
+                        <ul>
+                            <li>合并为统一的 CRUD 模块</li>
+                            <li>使用 SQLAlchemy 的异步 CRUD 基类减少重复代码</li>
+                        </ul>
+                    </div>
+
+                    <h3>⚠️ 中优先级改进</h3>
+
+                    <div class="refactor-item priority-medium">
+                        <div class="refactor-title">
+                            4. 配置管理优化
+                            <span class="priority-tag medium">中优先级</span>
+                        </div>
+                        <p><strong>建议:</strong></p>
+                        <ul>
+                            <li>考虑使用 Pydantic Settings 替代当前的 dataclass 配置</li>
+                            <li>添加配置验证（类型检查、值范围）</li>
+                            <li>支持多环境配置（dev, staging, prod）</li>
+                        </ul>
+                    </div>
+
+                    <div class="refactor-item priority-medium">
+                        <div class="refactor-title">
+                            5. 错误处理标准化
+                            <span class="priority-tag medium">中优先级</span>
+                        </div>
+                        <p><strong>建议:</strong></p>
+                        <ul>
+                            <li>定义统一的异常类层次结构</li>
+                            <li>使用 FastAPI 的异常处理器</li>
+                            <li>添加结构化的错误响应格式</li>
+                        </ul>
+                        <pre><code># 建议的异常层次
+class BaseAppException(Exception):
+    code: str
+    message: str
+
+class AuthenticationError(BaseAppException): ...
+class CouponGrabError(BaseAppException): ...
+class CookieExpiredError(BaseAppException): ...</code></pre>
+                    </div>
+
+                    <div class="refactor-item priority-medium">
+                        <div class="refactor-title">
+                            6. 日志系统改进
+                            <span class="priority-tag medium">中优先级</span>
+                        </div>
+                        <p><strong>问题:</strong> 存在两个日志模块：</p>
+                        <ul>
+                            <li><code>src/core/logger.py</code></li>
+                            <li><code>src/utils/logger.py</code></li>
+                        </ul>
+                        <p><strong>建议:</strong> 统一使用 loguru，删除冗余模块</p>
+                    </div>
+
+                    <h3>💡 低优先级优化</h3>
+
+                    <div class="refactor-item priority-low">
+                        <div class="refactor-title">
+                            7. 平台扩展性优化
+                            <span class="priority-tag low">低优先级</span>
+                        </div>
+                        <p><strong>建议:</strong></p>
+                        <ul>
+                            <li>实现平台适配器的自动发现机制</li>
+                            <li>添加平台配置的动态加载</li>
+                            <li>考虑使用插件系统（如 importlib.metadata）</li>
+                        </ul>
+                    </div>
+
+                    <div class="refactor-item priority-low">
+                        <div class="refactor-title">
+                            8. 测试覆盖
+                            <span class="priority-tag low">低优先级</span>
+                        </div>
+                        <p><strong>建议:</strong></p>
+                        <ul>
+                            <li>添加单元测试（pytest + pytest-asyncio）</li>
+                            <li>添加集成测试</li>
+                            <li>目标覆盖率: 70%+</li>
+                        </ul>
+                    </div>
+
+                    <div class="refactor-item priority-low">
+                        <div class="refactor-title">
+                            9. 文档完善
+                            <span class="priority-tag low">低优先级</span>
+                        </div>
+                        <p><strong>建议:</strong></p>
+                        <ul>
+                            <li>添加 API 文档（已有 FastAPI 自动生成）</li>
+                            <li>补充架构决策记录（ADR）</li>
+                            <li>添加开发者贡献指南</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- 迁移计划 -->
+                <section id="migration">
+                    <h2>📋 重构迁移计划</h2>
+
+                    <h3>阶段 1: 清理重复代码（1-2天）</h3>
+                    <ol>
+                        <li>✅ 选择要使用的 API 架构版本</li>
+                        <li>📝 合并 CRUD 操作文件</li>
+                        <li>📝 统一日志系统</li>
+                        <li>📝 删除未使用的导入和模块</li>
+                    </ol>
+
+                    <h3>阶段 2: 数据模型整合（1天）</h3>
+                    <ol>
+                        <li>📝 合并 models.py 和 user_models.py</li>
+                        <li>📝 更新所有导入引用</li>
+                        <li>📝 添加数据库迁移脚本</li>
+                    </ol>
+
+                    <h3>阶段 3: 错误处理标准化（1-2天）</h3>
+                    <ol>
+                        <li>📝 定义异常类层次</li>
+                        <li>📝 实现全局异常处理器</li>
+                        <li>📝 更新所有 raise 语句</li>
+                    </ol>
+
+                    <h3>阶段 4: 测试和文档（2-3天）</h3>
+                    <ol>
+                        <li>📝 编写单元测试</li>
+                        <li>📝 编写集成测试</li>
+                        <li>📝 更新文档</li>
+                    </ol>
+
+                    <div class="info">
+                        <strong>📌 注意:</strong> 重构时应保持向后兼容，或提供迁移工具。建议在功能分支进行重构，充分测试后再合并。
+                    </div>
+                </section>
+
+                <!-- API 路由表 -->
+                <section id="api-reference">
+                    <h2>📖 API 路由参考</h2>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>路径</th>
+                                <th>方法</th>
+                                <th>认证</th>
+                                <th>描述</th>
+                                <th>文件位置</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>/</td>
+                                <td>GET</td>
+                                <td>❌</td>
+                                <td>根路径，返回 API 信息</td>
+                                <td>main.py:30</td>
+                            </tr>
+                            <tr>
+                                <td>/api/health</td>
+                                <td>GET</td>
+                                <td>❌</td>
+                                <td>健康检查</td>
+                                <td>simple.py</td>
+                            </tr>
+                            <tr>
+                                <td>/api/status</td>
+                                <td>POST</td>
+                                <td>❌</td>
+                                <td>获取用户状态</td>
+                                <td>simple.py</td>
+                            </tr>
+                            <tr>
+                                <td>/api/checkin</td>
+                                <td>POST</td>
+                                <td>❌</td>
+                                <td>每日签到</td>
+                                <td>simple.py</td>
+                            </tr>
+                            <tr>
+                                <td>/api/grab</td>
+                                <td>POST</td>
+                                <td>❌</td>
+                                <td>抢取优惠券</td>
+                                <td>simple.py</td>
+                            </tr>
+                            <tr>
+                                <td>/api/records/checkin</td>
+                                <td>POST</td>
+                                <td>❌</td>
+                                <td>签到历史</td>
+                                <td>simple.py</td>
+                            </tr>
+                            <tr>
+                                <td>/api/records/grab</td>
+                                <td>POST</td>
+                                <td>❌</td>
+                                <td>抢券历史</td>
+                                <td>simple.py</td>
+                            </tr>
+                            <tr>
+                                <td>/api/stats</td>
+                                <td>POST</td>
+                                <td>❌</td>
+                                <td>统计数据</td>
+                                <td>simple.py</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+            </main>
+
+            <!-- 侧边导航 -->
+            <nav class="nav-menu">
+                <h3>📑 目录导航</h3>
+                <ul>
+                    <li><a href="#overview">📊 项目概览</a></li>
+                    <li><a href="#architecture">🏗️ 系统架构</a></li>
+                    <li><a href="#directory">📁 目录结构</a></li>
+                    <li><a href="#modules">🔧 核心模块</a></li>
+                    <li><a href="#refactor">🔨 重构建议</a></li>
+                    <li><a href="#migration">📋 迁移计划</a></li>
+                    <li><a href="#api-reference">📖 API 参考</a></li>
+                </ul>
+
+                <h3 style="margin-top: 30px;">🔗 快速链接</h3>
+                <ul>
+                    <li><a href="../src/api/main.py" target="_blank">API 主文件</a></li>
+                    <li><a href="../src/platforms/base_adapter.py" target="_blank">适配器基类</a></li>
+                    <li><a href="../src/database/models.py" target="_blank">数据模型</a></li>
+                    <li><a href="../CLAUDE.md" target="_blank">项目说明</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <footer style="text-align: center; padding: 30px; color: #666; margin-top: 40px; border-top: 1px solid #dee2e6;">
+            <p>整点抢券系统架构文档 | 生成时间: <span id="generated-time"></span></p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                基于代码自动生成 | 版本 2.0.0
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // 设置生成时间
+        document.getElementById('generated-time').textContent = new Date().toLocaleString('zh-CN');
+
+        // 标签页切换
+        function switchTab(event, tabId) {
+            // 隐藏所有标签内容
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // 移除所有标签的 active 类
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // 显示选中的标签内容
+            document.getElementById(tabId).classList.add('active');
+
+            // 添加 active 类到点击的标签
+            event.currentTarget.classList.add('active');
+        }
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 高亮当前章节（滚动时）
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-menu a[href^="#"]');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.style.fontWeight = 'normal';
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.style.fontWeight = 'bold';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
