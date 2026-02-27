@@ -24,6 +24,7 @@
 - Python 3.12+
 - FastAPI - Web 框架
 - SQLAlchemy - ORM
+- Pydantic - 数据验证
 - asyncio - 异步编程
 - httpx - HTTP 客户端
 - Playwright - 浏览器自动化
@@ -32,6 +33,10 @@
 - Vue.js 3
 - Vite
 - Element Plus
+
+**Claude Code 技能：**
+- python-lib-finder - Python 库快速查找
+- skill-creator - 技能创建工具
 
 ## 项目结构
 
@@ -59,9 +64,9 @@ coupon-grabber/
 │   │       ├── constants.py       # API 端点
 │   │       └── utils/             # 签名、解析工具
 │   ├── database/          # 数据库模型和 CRUD
-│   │   ├── models.py              # 主数据库（签到、抢券、积分）
-│   │   ├── user_models.py         # 用户数据库
-│   │   └── crud.py                # CRUD 操作
+│   │   ├── base.py                # 数据库基类
+│   │   ├── models.py              # 数据模型（签到、抢券、积分、用户）
+│   │   └── crud.py                # 所有表的 CRUD 操作
 │   ├── api/               # FastAPI 端点
 │   │   ├── main.py        # 主要 API（含认证）
 │   │   └── auth.py        # 认证端点
@@ -96,10 +101,15 @@ coupon-grabber/
 ├── tests/                 # 测试文件
 │   ├── test_api_logging.py
 │   └── test_baibuti_api.py
+├── .claude/               # Claude Code 配置
+│   └── skills/            # 技能包
+│       ├── python-lib-finder.skill  # Python 库查找技能
+│       └── skill_creator/          # 技能创建工具
 ├── docs/                  # 文档目录
 │   ├── 启动指南.md
 │   ├── WEB_GUIDE.md
-│   └── API配置指南.md
+│   ├── API配置指南.md
+│   └── REFACTORING_PLAN.md  # 重构计划文档
 ├── start_web.py           # Web 服务器入口
 └── requirements.txt       # Python 依赖
 ```
@@ -370,6 +380,32 @@ class MyPlatformAdapter(BaseAdapter):
 
 3. 在 `config/config.yaml` 添加平台配置
 
+### 数据库扩展
+
+所有数据模型继承自 `Base` 类 ([src/database/base.py](src/database/base.py)):
+
+```python
+from sqlalchemy import Column, Integer, String
+from .base import Base
+
+class MyModel(Base):
+    __tablename__ = "my_table"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50))
+
+    # 自动生成 created_at, updated_at
+```
+
+CRUD 操作使用统一的 CRUD 类 ([src/database/crud.py](src/database/crud.py)):
+
+```python
+from .crud import GenericCRUD
+
+class MyCRUD(GenericCRUD[MyModel, int]):
+    pass
+```
+
 ### 多用户模式
 
 所有受保护端点遵循此模式：
@@ -406,16 +442,32 @@ manager = BaiButiManager(account)
 | 认证错误（401） | 检查是否设置了 `Authorization: Bearer <token>` 请求头 |
 | Cookie 错误 | 每个用户必须配置自己的 PDD Cookie |
 
-## 技术栈
+## Claude Code 技能
 
-- **Python 3.12+**
-- **FastAPI** - Web 框架
-- **Vue.js 3** - 前端框架
-- **SQLAlchemy** - ORM
-- **asyncio** - 异步编程
-- **httpx** - HTTP 客户端
-- **Playwright** - 浏览器自动化
-- **Pydantic** - 数据验证
+项目包含 Claude Code 技能包，用于辅助开发：
+
+### python-lib-finder
+
+快速查找 Python 开发库的技能，按分类组织常用库：
+
+- Web 框架和 API
+- 数据科学和机器学习
+- 测试框架
+- 数据库 ORM
+- 异步编程
+- CLI 和终端工具
+- 文件格式处理
+- 网页爬取
+- DevOps 工具
+
+### skill-creator
+
+用于创建新的 Claude Code 技能的工具，包含：
+- 技能初始化脚本
+- 技能打包脚本
+- 最佳实践指南
+
+技能文件位于 [`.claude/skills/`](.claude/skills/) 目录。
 
 ## 许可证
 
